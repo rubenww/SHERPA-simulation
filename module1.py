@@ -54,8 +54,11 @@ class OmegaPowerWindows:
             pass
         else:
             self.hires_omega_windows[omega] = power(self.hires_inverse_distance, omega)
-            
+
         return self.hires_omega_windows[omega] 
+
+        # disable omega caching because in run008, we didn't round omega -> this will lead to memory issues
+        # return power(self.hires_inverse_distance, omega)
 
 # function that applies reductions per snap sector and precursor to the emission netcdf
 def create_delta_emission(path_emission_cdf, precursor_lst, path_area_cdf, 
@@ -70,10 +73,10 @@ def create_delta_emission(path_emission_cdf, precursor_lst, path_area_cdf,
     
     #20220530 if you do downscaling, only reduce PPM
     if downscale_request==1:
-        emission_reduction_dict['NOx'] = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0}
-        emission_reduction_dict['NMVOC'] = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0}
-        emission_reduction_dict['NH3'] = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0}
-        emission_reduction_dict['SOx'] = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0}
+        emission_reduction_dict['NOx'] = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0}
+        emission_reduction_dict['NMVOC'] = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0}
+        emission_reduction_dict['NH3'] = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0}
+        emission_reduction_dict['SOx'] = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0}
             
     # open the emission netcdf
     emission_dict = create_emission_dict(path_emission_cdf, precursor_lst)
@@ -92,7 +95,7 @@ def create_delta_emission(path_emission_cdf, precursor_lst, path_area_cdf,
         # make the sum over all snap sectors
         #for snap in range(1, 13):
         #EP20210518
-        for snap in range(1, sector_lst[-1]):
+        for snap in sector_lst:
             delta_emission_dict[precursor][snap - 1, :, :] = emission_dict[precursor][snap - 1] * reduction_area * emission_reduction_dict[precursor][snap]
 
     # before summing over all snap sectors write the delta emissions per precursor and snap to a netcdf
@@ -134,6 +137,9 @@ def create_delta_emission(path_emission_cdf, precursor_lst, path_area_cdf,
     # sum over all snap sectors
     for precursor in precursor_lst:
         delta_emission_dict[precursor] = sum(delta_emission_dict[precursor], axis=0)
+
+    print("Sector list: %s", sector_lst, flush=True)
+    print("Emis. red. dict keys: %s", emission_reduction_dict['NH3'].keys(), flush=True)
               
     return delta_emission_dict
 
@@ -158,6 +164,8 @@ def module1(path_emission_cdf, path_area_cdf, path_reduction_txt, path_base_conc
     n_lon = len(longitude_array)  # len(rootgrp.dimensions['longitude'])
     n_lat = len(latitude_array)  # len(rootgrp.dimensions['latitude'])
 
+    print("module1: read model data, alpha/omega (latxlon=%dx%d)" % (n_lat, n_lon), flush=True)
+
     #####
     #20180129 - EP - generalization to read 'radius of influence' variable, both written in matlab or python
     for nameatt in Dataset(path_model_cdf, 'r').ncattrs():
@@ -181,9 +189,13 @@ def module1(path_emission_cdf, path_area_cdf, path_reduction_txt, path_base_conc
     # close model netcdf
     rootgrp.close()
 
+    print("module1: alpha/omega saved", flush=True)
+
     # calculate the delta emissions, dictionary per pollutant a matrix of dimension n_lat x n_lon
     delta_emission_dict = create_delta_emission(path_emission_cdf, precursor_lst, path_area_cdf, path_reduction_txt, path_result_cdf, write_netcdf_output,
                                                 pollName, downscale_request)
+
+    print("module1: delta emissions created", flush=True)
     
     # make a window
     window = create_window(inner_radius)
@@ -193,6 +205,8 @@ def module1(path_emission_cdf, path_area_cdf, path_reduction_txt, path_base_conc
     pad_delta_emission_dict = {}
     for precursor in precursor_lst:
         pad_delta_emission_dict[precursor] = lib.pad(delta_emission_dict[precursor], inner_radius, 'constant', constant_values=0)
+
+    print("module1: delta emissions padded with window size", flush=True)
     
     # apply source receptor relationships
     # -----------------------------------
@@ -211,7 +225,7 @@ def module1(path_emission_cdf, path_area_cdf, path_reduction_txt, path_base_conc
                 progress = progress_dict['start'] + float(cell_counter) / float(n_cell) * 100 / progress_dict['divisor']
                 sys.stdout.write('\r')
                 sys.stdout.flush()
-                sys.stdout.write('progress:%f\r' % progress)
+                sys.stdout.write('progress mod1:%f\r' % progress)
                 sys.stdout.flush()
                 last_progress_print = time()
             
@@ -235,10 +249,12 @@ def module1(path_emission_cdf, path_area_cdf, path_reduction_txt, path_base_conc
             # update the cellcounter for the progress bar
             cell_counter += 1
     
+    print("module1: loop over lon/lat done", flush=True)
     # In the case of NO2 the variable 'delta_conc' contains the NOx concentrations as NO2-equivalent.
     # NO2 concentration and concentration difference are calculated applying an empiric formula
     # check if the pollutant is NO2, if so NO2 has to be calculated from NOx results w/ function 'deltaNOx_to_deltaNO2'
     if (path_model_cdf.find('NO2eq') > -1):
+        print("WARNING: converting NOx -> NO2", flush=True)
         rootgrp = Dataset(path_base_conc_cdf, 'r')
         base_conc_nox = rootgrp.variables['conc'][:]  
         base_conc_no2 = rootgrp.variables['NO2'][:]

@@ -51,7 +51,7 @@ def module4(path_emission_cdf, path_area_cdf, path_reduction_txt, path_base_conc
     delta_emis_dict = mod1_res['delta_emis_dict']
     n_lat = mod1_res['n_lat']
     n_lon = mod1_res['n_lon']
-    
+
     # remove progress log if he was made inside module 4, not if it was an external argument
     if not progresslog:
         remove(progresslog_filename)
