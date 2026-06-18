@@ -41,7 +41,7 @@ def create_delta_emission(path_emission_cdf, precursor_lst, reduction_area_array
         # reductions are positive!
         # make the sum over all snap sectors
         #EP20210518
-        for snap in range(1, sector_lst[-1]):
+        for snap in sector_lst:
         #for snap in range(1, 13):
             delta_emission_dict[precursor][snap - 1, :, :] = emission_dict[precursor][snap - 1] * reduction_area_array * emission_reduction_dict[precursor][snap]
         

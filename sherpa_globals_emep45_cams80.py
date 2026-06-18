@@ -68,7 +68,7 @@ aggrinp_txt=''
 # precursor_lst = ['NOx', 'NMVOC', 'NH3', 'PM25', 'SOx']  
 
 # order important, it's the order in the alpha and omega arrays
-sector_lst = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]   #  
+sector_lst = list(range(1,13+1))
 
 # fixed reduction percentage for potency calculation
 alpha_potency = float(50)

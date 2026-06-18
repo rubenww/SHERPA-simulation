@@ -92,7 +92,7 @@ def create_delta_emission(path_emission_cdf, precursor_lst, path_area_cdf,
         # make the sum over all snap sectors
         #for snap in range(1, 13):
         #EP20210518
-        for snap in range(1, sector_lst[-1]):
+        for snap in sector_lst:
             delta_emission_dict[precursor][snap - 1, :, :] = emission_dict[precursor][snap - 1] * reduction_area * emission_reduction_dict[precursor][snap]
 
     # before summing over all snap sectors write the delta emissions per precursor and snap to a netcdf

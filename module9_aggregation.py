@@ -72,7 +72,7 @@ def module9_aggregation(aggrinp_txt):
     # levels (they are colled the same in fua and nuts)
     nuts_lvs= ['NUTS_Lv0', 'NUTS_Lv1','NUTS_Lv2', 'NUTS_Lv3']
 
-    if sector_lst[-1] ==14 :
+    if len(sector_lst) ==14 :
         dct_ms={'GNFR1': 'GNFR01',
          'GNFR10': 'GNFR10',
          'GNFR11': 'GNFR11',
@@ -87,7 +87,7 @@ def module9_aggregation(aggrinp_txt):
          'GNFR8': 'GNFR08',
          'GNFR9': 'GNFR09',
          'ALL': 'GNFRALL'}
-    elif sector_lst[-1] == 13 :
+    elif len(sector_lst) == 13 :
         dct_ms={'GNFR1': 'GNFR01',
          'GNFR10': 'GNFR10',
          'GNFR11': 'GNFR11',

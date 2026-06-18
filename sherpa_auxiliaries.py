@@ -38,7 +38,7 @@ def create_emission_reduction_dict(path_reduction_txt):
         precursor = value_lst[0]
         emission_reduction_dict[precursor] = {}
         #EP20210518
-        for snap in range(1, sector_lst[-1]):
+        for snap in sector_lst:
 #        for snap in range(1, 13):
             emission_reduction_dict[precursor][snap] = float(value_lst[snap]) / 100.0
     f.close()
@@ -71,7 +71,7 @@ def create_emission_dict(path_emission_cdf, precursor_lst):
 
     #snap_array = range(1, 13)
     #EP20210518
-    snap_array = range(1, sector_lst[-1])
+    snap_array = range(1, len(sector_lst)+1)
     lon_array = rootgrp.variables['longitude'][:]
     lat_array = rootgrp.variables['latitude'][:]
     emission_dict['GNFRsector'] = snap_array

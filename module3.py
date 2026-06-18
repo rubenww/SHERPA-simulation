@@ -66,11 +66,11 @@ def module3a(path_emission_cdf, path_area_cdf, path_reduction_txt, path_base_con
     # name of the file in which the progress of the calculation will be kept and transfered to sub processes
     progress_log_filename = path_result_cdf + 'proglogmod3.txt'
      
-    for snap in sector_lst[0:-1]:
+    for snap in sector_lst:
         
         # write progress log file
-        start = float(counter) / (len(sector_lst[0:-1]) + 1) * 100
-        divisor = len(sector_lst[0:-1]) + 1
+        start = float(counter) / (len(sector_lst) + 1) * 100
+        divisor = len(sector_lst) + 1
         write_progress_log(progress_log_filename, start, divisor)
         
         # print(snap)
@@ -80,7 +80,7 @@ def module3a(path_emission_cdf, path_area_cdf, path_reduction_txt, path_base_con
         f_red_mod_4_snap.write(header)
         for precursor in precursor_lst:
             f_red_mod_4_snap.write(precursor)
-            for snap2 in sector_lst[0:-1]:
+            for snap2 in sector_lst:
                 if precursor in reduced_precursor_lst and snap2 == snap:
                     f_red_mod_4_snap.write('\t' + str(alpha_potency))
                 else:
@@ -106,8 +106,8 @@ def module3a(path_emission_cdf, path_area_cdf, path_reduction_txt, path_base_con
         remove(filename_mod4_reductions)
    
     # write progress log file
-    start = float(counter) / (len(sector_lst[0:-1]) + 1) * 100
-    divisor = len(sector_lst[0:-1]) + 1
+    start = float(counter) / (len(sector_lst) + 1) * 100
+    divisor = len(sector_lst) + 1
     write_progress_log(progress_log_filename, start, divisor)
             
     # execute module 4 with a reduction in all sectors together
@@ -115,7 +115,7 @@ def module3a(path_emission_cdf, path_area_cdf, path_reduction_txt, path_base_con
                            downscale_request, progress_log_filename)
     n_lat = res_mod4_all['n_lat'] 
     n_lon = res_mod4_all['n_lon']  
-    n_nuts = len(sector_lst[0:-1])
+    n_nuts = len(sector_lst)
 
     # remove potencies output
     remove(path_result_cdf + 'potencies.nc')
@@ -133,7 +133,7 @@ def module3a(path_emission_cdf, path_area_cdf, path_reduction_txt, path_base_con
     rootgrp.createDimension('latitude', n_lat)
     rootgrp.createDimension('longitude', n_lon)
     GNFRsectors = rootgrp.createVariable('GNFRsector', 'f4', ('GNFRsector',))
-    GNFRsectors[:] = sector_lst[0:-1]
+    GNFRsectors[:] = sector_lst
     latitudes = rootgrp.createVariable('latitude', 'f4', ('latitude',))
     latitudes.units = "degrees_north"
     longitudes = rootgrp.createVariable('longitude', 'f4', ('longitude',))
@@ -158,7 +158,7 @@ def module3a(path_emission_cdf, path_area_cdf, path_reduction_txt, path_base_con
     DC_C_alpha_all_var.units = "%"
     DC_C_alpha_all_var[:] = res_mod4_all['DC_C_alpha'] * 100
     
-    for snap in sector_lst[0:-1]:
+    for snap in sector_lst:
         DC_alpha_snap_var[snap - 1, :, :] = results[snap]['DC_alpha']
         DC_C_alpha_snap_var[snap - 1, :, :] = results[snap]['DC_C_alpha'] * 100
     rootgrp.close()
@@ -179,7 +179,7 @@ def module3b(path_emission_cdf, path_area_cdf, path_reduction_txt, path_base_con
     
     # look up which sector(s) that is(are) reduced
     reduced_sectors = []
-    for sector in sector_lst[0:-1]:
+    for sector in sector_lst:
         sum_over_precursors = 0
         for precursor in precursor_lst:
             sum_over_precursors += emission_reduction_dict[precursor][sector]
